@@ -1,15 +1,16 @@
-import _Vue from 'vue';
+import _Vue from "vue";
 
 declare global {
-  interface Window { gapi: any; }
+  interface Window {
+    gapi: any;
+  }
 }
 
 const googleAuth = ((): any => {
-
   const installClient = () => {
-    const apiUrl = 'https://apis.google.com/js/api.js';
+    const apiUrl = "https://accounts.google.com/gsi/client";
     return new Promise<void>((resolve) => {
-      const script: any = document.createElement('script');
+      const script: any = document.createElement("script");
       script.src = apiUrl;
       script.onreadystatechange = script.onload = () => {
         if (!script.readyState || /loaded|complete/.test(script.readyState)) {
@@ -18,17 +19,19 @@ const googleAuth = ((): any => {
           }, 500);
         }
       };
-      document.getElementsByTagName('head')[0].appendChild(script);
+      document.getElementsByTagName("head")[0].appendChild(script);
     });
   };
 
   const initClient = (config: any) => {
     return new Promise((resolve, reject) => {
-      window.gapi.load('auth2', () => {
-        window.gapi.auth2.init(config)
+      window.gapi.load("auth2", () => {
+        window.gapi.auth2
+          .init(config)
           .then(() => {
             resolve(window.gapi);
-          }).catch((error: any) => {
+          })
+          .catch((error: any) => {
             reject(error);
           });
       });
@@ -42,7 +45,9 @@ const googleAuth = ((): any => {
     this.prompt = null;
     this.isLoaded = () => {
       // tslint:disable-next-line
-      console.warn('isLoaded() will be deprecated. You can use "this.$gAuth.isInit"');
+      console.warn(
+        'isLoaded() will be deprecated. You can use "this.$gAuth.isInit"'
+      );
       return !!this.GoogleAuth;
     };
 
@@ -56,7 +61,8 @@ const googleAuth = ((): any => {
           this.isInit = true;
           this.prompt = prompt;
           this.isAuthorized = this.GoogleAuth.isSignedIn.get();
-        }).catch((error) => {
+        })
+        .catch((error) => {
           console.error(error);
         });
     };
@@ -64,7 +70,7 @@ const googleAuth = ((): any => {
     this.signIn = (successCallback: any, errorCallback: any) => {
       return new Promise((resolve, reject) => {
         if (!this.GoogleAuth) {
-          if (typeof errorCallback === 'function') {
+          if (typeof errorCallback === "function") {
             errorCallback(false);
           }
           reject(false);
@@ -72,14 +78,14 @@ const googleAuth = ((): any => {
         }
         this.GoogleAuth.signIn()
           .then((googleUser: any) => {
-            if (typeof successCallback === 'function') {
+            if (typeof successCallback === "function") {
               successCallback(googleUser);
             }
             this.isAuthorized = this.GoogleAuth.isSignedIn.get();
             resolve(googleUser);
           })
           .catch((error: any) => {
-            if (typeof errorCallback === 'function') {
+            if (typeof errorCallback === "function") {
               errorCallback(error);
             }
             reject(error);
@@ -90,7 +96,7 @@ const googleAuth = ((): any => {
     this.getAuthCode = (successCallback: any, errorCallback: any) => {
       return new Promise((resolve, reject) => {
         if (!this.GoogleAuth) {
-          if (typeof errorCallback === 'function') {
+          if (typeof errorCallback === "function") {
             errorCallback(false);
           }
           reject(false);
@@ -98,13 +104,13 @@ const googleAuth = ((): any => {
         }
         this.GoogleAuth.grantOfflineAccess({ prompt: this.prompt })
           .then((resp: any) => {
-            if (typeof successCallback === 'function') {
+            if (typeof successCallback === "function") {
               successCallback(resp.code);
             }
             resolve(resp.code);
           })
           .catch((error: any) => {
-            if (typeof errorCallback === 'function') {
+            if (typeof errorCallback === "function") {
               errorCallback(error);
             }
             reject(error);
@@ -115,7 +121,7 @@ const googleAuth = ((): any => {
     this.signOut = (successCallback: any, errorCallback: any) => {
       return new Promise((resolve, reject) => {
         if (!this.GoogleAuth) {
-          if (typeof errorCallback === 'function') {
+          if (typeof errorCallback === "function") {
             errorCallback(false);
           }
           reject(false);
@@ -123,14 +129,14 @@ const googleAuth = ((): any => {
         }
         this.GoogleAuth.signOut()
           .then(() => {
-            if (typeof successCallback === 'function') {
+            if (typeof successCallback === "function") {
               successCallback();
             }
             this.isAuthorized = false;
             resolve(true);
           })
           .catch((error: any) => {
-            if (typeof errorCallback === 'function') {
+            if (typeof errorCallback === "function") {
               errorCallback(error);
             }
             reject(error);
@@ -139,18 +145,17 @@ const googleAuth = ((): any => {
     };
   };
 
-  return new (Auth as any);
+  return new (Auth as any)();
 })();
-
 
 function installGoogleAuthPlugin(Vue: typeof _Vue, options?: any): void {
   // set config
   let GoogleAuthConfig: any = null;
   const GoogleAuthDefaultConfig = {
-    scope: 'profile email',
+    scope: "profile email",
   };
-  let prompt = 'select_account';
-  if (typeof options === 'object') {
+  let prompt = "select_account";
+  if (typeof options === "object") {
     GoogleAuthConfig = Object.assign(GoogleAuthDefaultConfig, options);
     if (options.scope) {
       GoogleAuthConfig.scope = options.scope;
@@ -160,11 +165,11 @@ function installGoogleAuthPlugin(Vue: typeof _Vue, options?: any): void {
     }
     if (!options.clientId) {
       // tslint:disable-next-line
-      console.warn('clientId is required');
+      console.warn("clientId is required");
     }
   } else {
     // tslint:disable-next-line
-    console.warn('invalid option type. Object type accepted only');
+    console.warn("invalid option type. Object type accepted only");
   }
 
   // Install Vue plugin
