@@ -8,7 +8,6 @@ var googleAuth = (function () {
       script.src = apiUrl;
       script.onreadystatechange = script.onload = function () {
         if (!script.readyState || /loaded|complete/.test(script.readyState)) {
-          console.log(google)
           setTimeout(function () {
             resolve();
           }, 500);
@@ -19,14 +18,33 @@ var googleAuth = (function () {
   }
 
   this.initClient = (config) => {
+    this.config = config;
     return new Promise((resolve, reject) => {
-      console.log("HERE1")
-      this.client = google.accounts.oauth2.initTokenClient({
+      this.token_client = google.accounts.oauth2.initTokenClient({
         client_id: config.clientId,
         scope: config.scope,
-        callback: config.callback,
-        access_type: 'offline',
+        callback: config.tokenCallback
+//        access_type: "offline"
       });
+      this.code_client = google.accounts.oauth2.initCodeClient({
+        client_id: config.clientId,
+        scope: config.scope,
+        ux_mode: 'popup',
+        callback: (response) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', config.codeUrl, true);
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          // Set custom header for CRSF
+          xhr.setRequestHeader('X-Requested-With', 'XmlHttpRequest');
+          xhr.onload = function() {
+            let local_auth_token = JSON.parse(xhr.responseText)["auth_token"]
+            config.codeCallback(local_auth_token)
+          };
+          xhr.send('auth_code=' + response.code);
+        },
+      });
+      console.log(config.scope)
+      resolve(this)
     })
   }
 
@@ -54,9 +72,12 @@ var googleAuth = (function () {
     };
 
     this.getAuthCode = (successCallback, errorCallback) => {
-      this.client.requestAccessToken();
+      this.code_client.requestCode();
     };
 
+    this.getAuthToken = (successCallback, errorCallback) => {
+      this.token_client.requestAccessToken();
+    };
     this.signOut = (successCallback, errorCallback) => {
       return new Promise((resolve, reject) => {
         if (!this.GoogleAuth) {
